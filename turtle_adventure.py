@@ -293,29 +293,30 @@ class DemoEnemy(Enemy):
             self.__state = self.move_left
 
     def move_down(self):
-        # self.move_to(self.x,random.randint(1, 1000))
-        self.y += random.randint(1, 100)
-        self.x += random.randint(-100, 100)
+        # self.y += 10
+        # self.x += 10
+        self.y += random.randint(1, 50)*0.5
+        self.x += random.randint(-50, 50)*0.5
         self.change_state()
 
 
     def move_up(self):
-        # self.move_to(self.x, random.randint(1, 1000))
-        self.y -= random.randint(1, 100)
-        self.x += random.randint(-100, 100)
+        # self.y -= random.randint(1, 100)
+        # self.x += random.randint(1, 100)
+        self.y -= random.randint(1, 100)*0.1
+        self.x += random.randint(-100, 100)*0.1
         self.change_state()
 
     def move_left(self):
-        # self.move_to(self.x+random.randint(1, 1000), self.y+(random.randint(1, 1000)))
-
-        self.x -= random.randint(1, 100)
-        self.y += random.randint(-100, 100)
+        self.x -= random.randint(1, 50)*0.5
+        self.y += random.randint(-50, 50)*0.5
         self.change_state()
 
     def move_right(self):
-        # self.move_to(random.randint(1, 1000), random.randint(1, 1000))
-        self.x += random.randint(1, 100)
-        self.y += random.randint(-20, 100)
+        # self.x += 10*0.1
+        # self.y += 10*0.1
+        self.x += random.randint(1, 100)*0.5
+        self.y += random.randint(-20, 100)*0.5
         self.change_state()
 
 
@@ -337,7 +338,6 @@ class DemoEnemy(Enemy):
         pass
 
 class ChasingEnermy(Enemy):
-    COUNT = 200
     def __init__(self,
                  game: "TurtleAdventureGame",
                  size: int,
@@ -352,8 +352,6 @@ class ChasingEnermy(Enemy):
     def update(self) -> None:
         self.x += (self.game.player.x-self.x)*0.01
         self.y += (self.game.player.y-self.y)*0.01
-        # self.x += (self.game.player.x-self.x) + ChasingEnermy.COUNT
-        # self.y += (self.game.player.y-self.y) + ChasingEnermy.COUNT
         if self.hits_player():
             self.game.game_over_lose()
         # self.x += self.speed
@@ -378,23 +376,72 @@ class GuardEnermy(Enemy):
                  color: str, speed: int):
         super().__init__(game, size, color, speed)
         self.__id = None
-        self.__state = None# up, down, right, left
     def create(self) -> None:
         self.__id = self.canvas.create_rectangle(0, 0, 0, 0, fill=self.color)
-
+        self.x = self.game.home.x + 30
+        self.y = self.game.home.y + 30
 
     def update(self) -> None:
-        print(Player.x)
-        # self.x += self.speed
-        # self.y += self.speed
+        # print(self.game.home.x, self.game.home.y)
+        # print(34343434,self.x,self.y)
+        if self.hits_player():
+            self.game.game_over_lose()
+
+        if self.x > self.game.home.x - 30 and self.y <= self.game.home.y - 30:
+            self.x -= 1
+
+        elif self.x == self.game.home.x - 30 and self.y < self.game.home.y +30:
+            self.y += 1
+
+        elif self.x < self.game.home.x + 30 and self.y == 280:
+            self.x +=1
+        elif self.x == self.game.home.x + 30 and self.y <= self.game.home.y +30:
+            self.y -=1
 
 
     def render(self) -> None:
         self.canvas.coords(self.__id,
-                           self.x - self.size / 2,
-                           self.y - self.size / 2,
-                           self.x + self.size / 2,
-                           self.y + self.size / 2
+                           self.x - self.size / 8,
+                           self.y - self.size / 8,
+                           self.x + self.size / 8,
+                           self.y + self.size / 8
+                           )
+
+    def delete(self) -> None:
+        pass
+
+class MinkEnermy(Enemy):
+    def __init__(self,
+                 game: "TurtleAdventureGame",
+                 size: int,
+                 color: str, speed: int):
+        super().__init__(game, size, color, speed)
+        self.__id = None
+        self.__orig_size = self.size
+    def create(self) -> None:
+        self.__id = self.canvas.create_oval(0, 0, 0, 0, fill=self.color)
+        self.x = random.randint(1, 100)
+        self.y = random.randint(1, 100)
+    def update(self) -> None:
+        self.x += 23
+        self.y += 23
+        if self.hits_player():
+            self.game.game_over_lose()
+        # new_size = self.__orig_size /1000
+        # self.canvas.coords(self.__id,
+        #                    self.x - self.size/1000,
+        #                    self.y - self.size/1000,
+        #                    self.x + self.size/1000,
+        #                    self.y + self.size/1000
+        #                    )
+
+
+    def render(self) -> None:
+        self.canvas.coords(self.__id,
+                           self.x - self.size/2,
+                           self.y - self.size/2,
+                           self.x + self.size/2,
+                           self.y + self.size/2
                            )
 
     def delete(self) -> None:
@@ -442,29 +489,20 @@ class EnemyGenerator:
         """
         # self.game.add_enemy()
         #level 1
+
         new_enemy = DemoEnemy(self.__game, 14, "red", 1)
         new_enemy.x = random.randint(1, 100)
         new_enemy.y = random.randint(1, 100)
         self.game.add_element(new_enemy)
         chaser = ChasingEnermy(self.__game, 40, "purple",30)
-        # chaser.x,chaser.y = 0,10
         chaser.x, chaser.y = random.randint(-1000, 1000), random.randint(-1000, 1000)
         self.game.add_element(chaser)
-        self.game.after(3000,self.create_enemy)
-        # for i in range(3):
-        #     new_enemy = DemoEnemy(self.__game, 14, "red",50)
-        #     new_enemy.x = random.randint(1, 100)
-        #     new_enemy.y = random.randint(1, 100)
-        #     self.game.add_element(new_enemy)
-        #
-        #     chaser = ChasingEnermy(self.__game, 40, "purple",30)
-        #     # chaser.x,chaser.y = 0,10
-        #     chaser.x, chaser.y = random.randint(-1000, 1000), random.randint(-1000, 1000)
-        #     self.game.add_element(chaser)
-        # guard = GuardEnermy(self.__game, 40, "orange",30)
-        # chaser.x, chaser.y = 0, 10
-        # self.game.add_element(guard)
-
+        guard = GuardEnermy(self.__game, 40, "orange",30)
+        self.game.add_element(guard)
+        easter = MinkEnermy(self.__game, 100, "green",30)
+        self.game.add_element(easter)
+        if self.level == 2:
+            self.game.after(6000,self.create_enemy)
 
 
 
